@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sironka Stampede Dashboard</title>
+  <style>
+    body {
+      background: #1a1a1a;
+      color: #eee;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #container {
+      position: relative;
+      width: 500px;
+      height: 150px;
+      background: #222;
+      border-radius: 10px;
+      box-shadow: 0 0 30px #444;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .animal {
+      position: absolute;
+      font-size: 80px;
+      top: 35px;
+      user-select: none;
+      opacity: 0;
+    }
+
+    .coffee {
+      font-size: 90px;
+      position: absolute;
+      right: 40px;
+      top: 30px;
+      user-select: none;
+    }
+
+    #customerName {
+      position: absolute;
+      top: 10px;
+      right: 40px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #ffd700;
+      text-shadow: 0 0 5px #ffd700;
+      width: 200px;
+      text-align: right;
+    }
+
+    @keyframes charge {
+      0% {
+        left: -100px;
+        opacity: 1;
+        transform: scale(1);
+      }
+      80% {
+        left: 350px;
+        opacity: 1;
+        transform: scale(1.1);
+      }
+      100% {
+        left: 380px;
+        opacity: 0;
+        transform: scale(0.8);
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Sironka Stampede Dashboard</h1>
+
+<div id="container">
+  <div id="bull" class="animal" style="color:black;">🐂</div>
+  <div id="sheep" class="animal" style="color:white;">🐑</div>
+  <div id="goat" class="animal" style="color:#a0522d;">🐐</div>
+  <div class="coffee">☕</div>
+  <div id="customerName"></div>
+</div>
+
+<script>
+  const bull = document.getElementById('bull');
+  const sheep = document.getElementById('sheep');
+  const goat = document.getElementById('goat');
+  const customerName = document.getElementById('customerName');
+
+  function animateAnimal(animalElem, name) {
+    customerName.textContent = name;
+    animalElem.style.opacity = '1';
+    animalElem.style.left = '-100px';
+    animalElem.style.animation = 'charge 2s forwards';
+
+    animalElem.addEventListener('animationend', () => {
+      animalElem.style.opacity = '0';
+      animalElem.style.animation = '';
+      customerName.textContent = '';
+    }, { once: true });
+  }
+
+  function triggerAnimation(grade, name) {
+    switch (grade) {
+      case 'AA':
+        animateAnimal(bull, name);
+        break;
+      case 'AB':
+        animateAnimal(sheep, name);
+        break;
+      case 'PB':
+        animateAnimal(goat, name);
+        break;
+      default:
+        console.log('Unknown grade:', grade);
+    }
+  }
+
+  // Optional: WebSocket connection for live form triggers
+  const socket = new WebSocket('wss://sironkastampede.glitch.me/ws');
+
+  socket.addEventListener('open', () => {
+    console.log('Connected to Sironka Stampede WebSocket');
+  });
+
+  socket.addEventListener('message', (event) => {
+    const data = JSON.parse(event.data);
+    if (data.grade && data.customer) {
+      triggerAnimation(data.grade, data.customer);
+    }
+  });
+
+  socket.addEventListener('close', () => {
+    console.log('Disconnected from WebSocket');
+  });
+
+  // DEMO MODE: 2 stampedes every 4.5 seconds
+  const demoCustomers = [
+    'Nairobi Roast Co.',
+    'Karibu Beans Ltd.',
+    'Twiga Trading',
+    'Safari Grinds',
+    'Crescent Beans',
+    'Highland Coffee Bros.',
+    'Mount Meru Estate',
+    'Savanna Select',
+  ];
+
+  const grades = ['AA', 'AB', 'PB'];
+
+  function getRandomOrder() {
+    const grade = grades[Math.floor(Math.random() * grades.length)];
+    const customer = demoCustomers[Math.floor(Math.random() * demoCustomers.length)];
+    return { grade, customer };
+  }
+
+  function doubleStampedeLoop() {
+    const order1 = getRandomOrder();
+    const order2 = getRandomOrder();
+
+    triggerAnimation(order1.grade, order1.customer);
+
+    setTimeout(() => {
+      triggerAnimation(order2.grade, order2.customer);
+    }, 500);
+
+    setTimeout(doubleStampedeLoop, 4500);
+  }
+
+  doubleStampedeLoop();
+</script>
+
+</body>
+</html>
